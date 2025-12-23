@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quick Order Shop</title>
+  <meta name="description" content="Select an item, size, and colorway, then message on Telegram." />
+  <style>
+    :root{
+      --bg:#070b12;
+      --panel:rgba(255,255,255,.05);
+      --border:rgba(255,255,255,.10);
+      --text:#eaf0ff;
+      --muted:rgba(234,240,255,.65);
+      --accent1:#4aa3ff;
+      --accent2:#2b7fff;
+      --ok:#3dff9c;
+      --radius:22px;
+      --shadow: 0 22px 70px rgba(0,0,0,.55);
+      --shadow2: 0 12px 40px rgba(0,0,0,.35);
+      --max:1100px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1100px 600px at 15% -10%, rgba(74,163,255,.22), transparent 60%),
+        radial-gradient(1000px 600px at 95% 0%, rgba(43,127,255,.18), transparent 55%),
+        radial-gradient(900px 600px at 50% 120%, rgba(61,255,156,.10), transparent 55%),
+        var(--bg);
+      min-height:100vh;
+      padding:28px 16px 40px;
+      display:flex;
+      justify-content:center;
+    }
+    .wrap{width:100%; max-width:var(--max);}
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:18px;
+    }
+    .brand{ display:flex; gap:12px; align-items:center; }
+    .logo{
+      width:46px;height:46px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(74,163,255,.95), rgba(43,127,255,.70));
+      border:1px solid var(--border);
+    }
+    .brand h1{margin:0; font-size:16px; font-weight:900;}
+    .brand p{margin:2px 0 0; font-size:12px; color:var(--muted);}
+    .pill{
+      font-size:12px; padding:10px 12px; border:1px solid var(--border);
+      background:rgba(255,255,255,.03); border-radius:999px;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    @media (max-width: 900px){ .hero{grid-template-columns:1fr;} }
+
+    .card{
+      background: rgba(255,255,255,.05);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .banner{
+      padding:22px;
+      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+      border-bottom:1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .banner h2{ margin:0; font-size:22px; }
+    .price-tag {
+      background: rgba(0,0,0,0.3);
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--accent1);
+      text-align: center;
+    }
+    .price-tag span { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; }
+    .price-tag b { font-size: 20px; color: var(--ok); }
+
+    .content{ padding: 18px; }
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    @media (max-width: 720px){ .grid{grid-template-columns:1fr;} }
+
+    .field{ display:flex; flex-direction:column; gap:7px; }
+    label{ font-size:11px; color:var(--muted); font-weight:800; text-transform: uppercase; }
+    select, textarea{
+      width:100%; border:1px solid var(--border);
+      background: rgba(0,0,0,.22); color: var(--text);
+      border-radius: 14px; padding: 12px; outline:none;
+    }
+    textarea{ min-height: 80px; }
+    option{ background:#0b1020; }
+
+    .actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .btn{
+      border:1px solid var(--border); background: rgba(255,255,255,.03);
+      color: var(--text); border-radius: 14px; padding: 12px 20px;
+      font-weight:900; cursor:pointer; text-decoration:none;
+      display:inline-flex; align-items:center; gap:10px;
+      transition: 0.2s;
+    }
+    .btn:hover{ background: rgba(74,163,255,.15); border-color: var(--accent1); }
+    .btn.primary{ background: var(--accent2); border: none; }
+    .btn.primary:hover{ background: var(--accent1); }
+
+    .aside{ padding:18px; display:flex; flex-direction:column; gap:12px; }
+    .status{
+      display:flex; align-items:center; gap:10px;
+      background: rgba(0,0,0,.18); border-radius: 14px; padding: 12px;
+      font-size: 13px; color: var(--muted);
+    }
+    .dot{ width:8px; height:8px; border-radius:50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+    .note{ font-size:12px; color:var(--muted); line-height:1.5; border-left: 2px solid var(--border); padding-left: 10px;}
+    footer{ margin-top:20px; color: rgba(234,240,255,.3); font-size:11px; text-align:center; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>Order Shop</h1>
+          <p>Instant checkout via Telegram</p>
+        </div>
+      </div>
+      <div class="pill">Contact: <b>@WRMSLL</b></div>
+    </header>
+
+    <section class="hero">
+      <div class="card">
+        <div class="banner">
+          <h2 id="title">Loading...</h2>
+          <div class="price-tag">
+            <span>Price</span>
+            <b id="price">$0</b>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="field">
+              <label for="category">Category</label>
+              <select id="category"></select>
+            </div>
+
+            <div class="field">
+              <label for="model">Model</label>
+              <select id="model"></select>
+            </div>
+
+            <div class="field">
+              <label for="size">Size</label>
+              <select id="size"></select>
+            </div>
+
+            <div class="field">
+              <label for="colorway">Colorway</label>
+              <select id="colorway"></select>
+            </div>
+
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="extra">Notes (Optional)</label>
+              <textarea id="extra" placeholder="Shipping info or special requests..."></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <a class="btn primary" id="buyBtn" href="#" target="_blank">Buy Now (Telegram)</a>
+            <button class="btn" id="copyBtn">Copy Link</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="card aside">
+        <h3>Order Info</h3>
+        <div class="status">
+          <span class="dot"></span>
+          <div>Agent Online: Fast Responses</div>
+        </div>
+        <div class="note">
+          Prices are fixed based on item type. Shipping costs are calculated during chat.
+        </div>
+        <div class="note">
+          Clicking "Buy Now" will open Telegram with your order details already typed out. Just hit send!
+        </div>
+      </aside>
+    </section>
+
+    <footer>© Shop System | Message @WRMSLL for support</footer>
+  </div>
+
+  <script>
+    const TELEGRAM_USERNAME = "WRMSLL";
+
+    const PRICING = {
+      shoe: 40,
+      tech: 25,
+      clothing: 25,
+      accessory: 15
+    };
+
+    const CATALOG = {
+      "Air Jordan 4": {
+        type: "shoe",
+        models: ["Retro Black Cat", "Retro Military Blue", "Retro SB Pine Green", "Retro Red Thunder", "Retro University Blue"],
+        colorways: ["OG Color", "Custom", "Black/White", "Grey/Blue"],
+        sizes: ["US 7", "US 8", "US 9", "US 10", "US 11", "US 12"]
+      },
+      "Air Jordan 1": {
+        type: "shoe",
+        models: ["High OG Chicago", "High Dark Mocha", "Low Travis Scott", "Mid Wolf Grey"],
+        colorways: ["Standard", "Vintage Finish", "Alternative"],
+        sizes: ["US 7", "US 8", "US 9", "US 10", "US 11", "US 12"]
+      },
+      "Apple AirPods": {
+        type: "tech",
+        models: ["AirPods Gen 2", "AirPods Gen 3", "AirPods Pro", "AirPods Pro 2", "AirPods Max"],
+        colorways: ["Standard White", "Space Grey (Max)", "Silver (Max)", "Sky Blue (Max)"],
+        sizes: ["Standard One Size"]
+      },
+      "iPhone Cases": {
+        type: "accessory",
+        models: ["iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 15 Pro Max", "iPhone 14 Pro", "iPhone 13"],
+        colorways: ["Silicone Black", "Silicone Blue", "Leather Midnight", "Clear MagSafe"],
+        sizes: ["Exact Fit"]
+      },
+      "Essentials": {
+        type: "clothing",
+        models: ["Fear of God Hoodie", "FOG Sweatpants", "FOG T-Shirt"],
+        colorways: ["Black", "Oatmeal", "Light Grey", "Buttercream"],
+        sizes: ["S", "M", "L", "XL"]
+      },
+      "Arc'teryx": {
+        type: "clothing",
+        models: ["Alpha SV Jacket", "Beta LT Shell", "Atom LT Hoody"],
+        colorways: ["Black", "Ether Blue", "Oracle Yellow", "Tatsu Green"],
+        sizes: ["S", "M", "L", "XL"]
+      }
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function setOptions(selectEl, options) {
+      selectEl.innerHTML = "";
+      options.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        selectEl.appendChild(opt);
+      });
+    }
+
+    function refreshUI() {
+      const cat = $("category").value;
+      const data = CATALOG[cat];
+      const price = PRICING[data.type];
+
+      // Update Text
+      $("title").textContent = $("model").value;
+      $("price").textContent = `$${price}`;
+
+      // Update Link
+      const msg = `Order Request:\n` +
+                  `------------------\n` +
+                  `Item: ${cat}\n` +
+                  `Model: ${$("model").value}\n` +
+                  `Size: ${$("size").value}\n` +
+                  `Color: ${$("colorway").value}\n` +
+                  `Price: $${price}\n` +
+                  `Notes: ${$("extra").value || "None"}`;
+
+      $("buyBtn").href = `https://t.me/${TELEGRAM_USERNAME}?text=${encodeURIComponent(msg)}`;
+    }
+
+    function handleCategoryChange() {
+      const cat = $("category").value;
+      const data = CATALOG[cat];
+      
+      setOptions($("model"), data.models);
+      setOptions($("size"), data.sizes);
+      setOptions($("colorway"), data.colorways);
+      
+      refreshUI();
+    }
+
+    // Init
+    setOptions($("category"), Object.keys(CATALOG));
+    handleCategoryChange();
+
+    // Listeners
+    $("category").addEventListener("change", handleCategoryChange);
+    $("model").addEventListener("change", refreshUI);
+    $("size").addEventListener("change", refreshUI);
+    $("colorway").addEventListener("change", refreshUI);
+    $("extra").addEventListener("input", refreshUI);
+
+    $("copyBtn").addEventListener("click", () => {
+      navigator.clipboard.writeText($("buyBtn").href);
+      alert("Telegram order link copied!");
+    });
+  </script>
+</body>
+</html>
