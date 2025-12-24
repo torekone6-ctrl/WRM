@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bulk Order Shop</title>
+  <title>Quick Order Shop</title>
+  <meta name="description" content="Select an item, size, and colorway, then message on Telegram." />
   <style>
     :root{
       --bg:#070b12;
@@ -16,240 +17,306 @@
       --ok:#3dff9c;
       --radius:22px;
       --shadow: 0 22px 70px rgba(0,0,0,.55);
+      --shadow2: 0 12px 40px rgba(0,0,0,.35);
       --max:1100px;
     }
     *{box-sizing:border-box}
     body{
-      margin:0; font-family: ui-sans-serif, system-ui, sans-serif;
-      color:var(--text); background: radial-gradient(1100px 600px at 15% -10%, rgba(74,163,255,.22), transparent 60%), var(--bg);
-      min-height:100vh; padding:28px 16px; display:flex; justify-content:center;
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1100px 600px at 15% -10%, rgba(74,163,255,.22), transparent 60%),
+        radial-gradient(1000px 600px at 95% 0%, rgba(43,127,255,.18), transparent 55%),
+        radial-gradient(900px 600px at 50% 120%, rgba(61,255,156,.10), transparent 55%),
+        var(--bg);
+      min-height:100vh;
+      padding:28px 16px 40px;
+      display:flex;
+      justify-content:center;
     }
     .wrap{width:100%; max-width:var(--max);}
-    header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
-    .logo{ width:46px; height:46px; border-radius:14px; background:linear-gradient(135deg, #4aa3ff, #2b7fff); border:1px solid var(--border); }
-    
-    .hero{ display:grid; grid-template-columns: 1.2fr .8fr; gap:18px; }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:18px;
+    }
+    .brand{ display:flex; gap:12px; align-items:center; }
+    .logo{
+      width:46px;height:46px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(74,163,255,.95), rgba(43,127,255,.70));
+      border:1px solid var(--border);
+    }
+    .brand h1{margin:0; font-size:16px; font-weight:900;}
+    .brand p{margin:2px 0 0; font-size:12px; color:var(--muted);}
+    .pill{
+      font-size:12px; padding:10px 12px; border:1px solid var(--border);
+      background:rgba(255,255,255,.03); border-radius:999px;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:18px;
+      align-items:stretch;
+    }
     @media (max-width: 900px){ .hero{grid-template-columns:1fr;} }
 
-    .card{ background: var(--panel); border:1px solid var(--border); border-radius: var(--radius); backdrop-filter: blur(10px); padding:20px; margin-bottom:20px;}
-    
-    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:15px; }
+    .card{
+      background: rgba(255,255,255,.05);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    .banner{
+      padding:22px;
+      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+      border-bottom:1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .banner h2{ margin:0; font-size:22px; }
+    .price-tag {
+      background: rgba(0,0,0,0.3);
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--accent1);
+      text-align: center;
+    }
+    .price-tag span { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; }
+    .price-tag b { font-size: 20px; color: var(--ok); }
+
+    .content{ padding: 18px; }
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    @media (max-width: 720px){ .grid{grid-template-columns:1fr;} }
+
     .field{ display:flex; flex-direction:column; gap:7px; }
     label{ font-size:11px; color:var(--muted); font-weight:800; text-transform: uppercase; }
-    select, textarea, input{
-      width:100%; border:1px solid var(--border); background: rgba(0,0,0,.22); color: var(--text);
-      border-radius: 12px; padding: 12px; outline:none; font-size: 14px;
+    select, textarea{
+      width:100%; border:1px solid var(--border);
+      background: rgba(0,0,0,.22); color: var(--text);
+      border-radius: 14px; padding: 12px; outline:none;
     }
+    textarea{ min-height: 80px; }
+    option{ background:#0b1020; }
 
-    .cart-item {
-      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-      padding: 12px; border-radius: 12px; margin-bottom: 8px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .cart-item button { background:none; border:none; color:#ff4a4a; cursor:pointer; font-weight:bold; }
-
+    .actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
     .btn{
       border:1px solid var(--border); background: rgba(255,255,255,.03);
       color: var(--text); border-radius: 14px; padding: 12px 20px;
-      font-weight:900; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:10px;
+      font-weight:900; cursor:pointer; text-decoration:none;
+      display:inline-flex; align-items:center; gap:10px;
+      transition: 0.2s;
     }
-    .btn.primary{ background: var(--accent2); border: none; width: 100%; justify-content: center; margin-top: 10px;}
-    .btn.add { background: var(--ok); color: #000; border:none; margin-top:10px; }
+    .btn:hover{ background: rgba(74,163,255,.15); border-color: var(--accent1); }
+    .btn.primary{ background: var(--accent2); border: none; }
+    .btn.primary:hover{ background: var(--accent1); }
 
-    .price-display { font-size: 24px; color: var(--ok); font-weight: 900; }
-    .summary-box { border-top: 1px solid var(--border); pt: 15px; margin-top: 15px; }
+    .aside{ padding:18px; display:flex; flex-direction:column; gap:12px; }
+    .status{
+      display:flex; align-items:center; gap:10px;
+      background: rgba(0,0,0,.18); border-radius: 14px; padding: 12px;
+      font-size: 13px; color: var(--muted);
+    }
+    .dot{ width:8px; height:8px; border-radius:50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+    .note{ font-size:12px; color:var(--muted); line-height:1.5; border-left: 2px solid var(--border); padding-left: 10px;}
+    footer{ margin-top:20px; color: rgba(234,240,255,.3); font-size:11px; text-align:center; }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <header>
-      <div style="display:flex; gap:12px; align-items:center;">
+      <div class="brand">
         <div class="logo"></div>
-        <div><h1 style="margin:0; font-size:18px;">Bulk Shop</h1><p style="margin:0; font-size:12px; color:var(--muted);">Wholesale & Consoles</p></div>
+        <div>
+          <h1>Order Shop</h1>
+          <p>Instant checkout via Telegram</p>
+        </div>
       </div>
-      <div class="price-display" id="totalPrice">$0</div>
+      <div class="pill">Contact: <b>@WRMSLL</b></div>
     </header>
 
     <section class="hero">
-      <div class="main-col">
-        <div class="card">
-          <h3 style="margin-top:0">Configure Item</h3>
-          <div class="grid">
-            <div class="field">
-              <label>Product Category</label>
-              <select id="category"></select>
-            </div>
-            <div class="field">
-              <label>Model</label>
-              <select id="model"></select>
-            </div>
-            <div class="field">
-              <label>Size / Variation</label>
-              <select id="size"></select>
-            </div>
-            <div class="field">
-              <label>Colorway</label>
-              <select id="colorway"></select>
-            </div>
-            <div class="field">
-              <label>Quantity</label>
-              <input type="number" id="qty" value="1" min="1">
-            </div>
-            <div class="field">
-                <label>Unit Price</label>
-                <div id="unitDisplay" style="padding:12px; color:var(--ok)">$0</div>
-            </div>
+      <div class="card">
+        <div class="banner">
+          <h2 id="title">Loading...</h2>
+          <div class="price-tag">
+            <span>Price</span>
+            <b id="price">$0</b>
           </div>
-          <button class="btn add" id="addToCart">Add to Order +</button>
         </div>
 
-        <div class="card">
-          <h3 style="margin-top:0">Your Order Summary</h3>
-          <div id="cartList">
-            <p style="color:var(--muted); font-size:14px;">No items added yet...</p>
+        <div class="content">
+          <div class="grid">
+            <div class="field">
+              <label for="category">Category</label>
+              <select id="category"></select>
+            </div>
+
+            <div class="field">
+              <label for="model">Model</label>
+              <select id="model"></select>
+            </div>
+
+            <div class="field">
+              <label for="size">Size</label>
+              <select id="size"></select>
+            </div>
+
+            <div class="field">
+              <label for="colorway">Colorway</label>
+              <select id="colorway"></select>
+            </div>
+
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="extra">Notes (Optional)</label>
+              <textarea id="extra" placeholder="Shipping info or special requests..."></textarea>
+            </div>
           </div>
-          <div class="field" style="margin-top:20px;">
-            <label>Extra Notes</label>
-            <textarea id="extra" placeholder="Shipping address or special requests..."></textarea>
+
+          <div class="actions">
+            <a class="btn primary" id="buyBtn" href="#" target="_blank">Buy Now (Telegram)</a>
+            <button class="btn" id="copyBtn">Copy Link</button>
           </div>
-          <a class="btn primary" id="buyBtn" href="#" target="_blank">Message Order on Telegram</a>
         </div>
       </div>
 
-      <aside>
-        <div class="card">
-          <h3>Information</h3>
-          <p style="font-size:13px; color:var(--muted); line-height:1.6;">
-            • <b>"Box of..."</b> indicates a wholesale pack of 6 units.<br>
-            • Consoles (PS5/Xbox) are sold as <b>Single Units</b>.<br>
-            • Add multiple different items to your cart before clicking Buy Now.<br>
-            • Shipping is calculated via Telegram chat.
-          </p>
+      <aside class="card aside">
+        <h3>Order Info</h3>
+        <div class="status">
+          <span class="dot"></span>
+          <div>Agent Online: Fast Responses</div>
+        </div>
+        <div class="note">
+          Prices are fixed based on item type. Shipping costs are calculated during chat.
+        </div>
+        <div class="note">
+          Clicking "Buy Now" will open Telegram with your order details already typed out. Just hit send!
         </div>
       </aside>
     </section>
+
+    <footer>© Shop System | Message @WRMSLL for support</footer>
   </div>
 
   <script>
     const TELEGRAM_USERNAME = "WRMSLL";
 
-    const CATALOG = {
-      "Box of Shoes": { price: 240, type: "box", models: ["AJ4 Retro", "AJ1 High", "Dunk Low"], colorways: ["OG Mix", "Black/White", "Random Mix"], sizes: ["Mixed US 7-12"] },
-      "Box of Tech": { price: 150, type: "box", models: ["AirPods Pro 2", "AirPods Max", "MagSafe Packs"], colorways: ["Standard"], sizes: ["Retail Pack"] },
-      "Box of Clothing": { price: 150, type: "box", models: ["Essentials Hoodie", "Arc'teryx Shell", "FOG Tees"], colorways: ["Black", "Grey", "Mix"], sizes: ["S-XL Mix"] },
-      "Box of Accessories": { price: 90, type: "box", models: ["iPhone Cases", "Wallets", "Belts"], colorways: ["Mixed"], sizes: ["Multi-model"] },
-      "Sony PlayStation": { price: 300, type: "single", models: ["PS5 Slim Disc", "PS5 Digital", "PS4 Pro 1TB"], colorways: ["White", "Black"], sizes: ["New in Box"] },
-      "Microsoft Xbox": { price: 300, type: "single", models: ["Xbox Series X", "Xbox Series S"], colorways: ["Carbon Black", "Robot White"], sizes: ["New in Box"] }
+    const PRICING = {
+      shoe: 40,
+      tech: 25,
+      clothing: 25,
+      accessory: 15
     };
 
-    let cart = [];
+    const CATALOG = {
+      "Air Jordan 4": {
+        type: "shoe",
+        models: ["Retro Black Cat", "Retro Military Blue", "Retro SB Pine Green", "Retro Red Thunder", "Retro University Blue"],
+        colorways: ["OG Color", "Custom", "Black/White", "Grey/Blue"],
+        sizes: ["US 7", "US 8", "US 9", "US 10", "US 11", "US 12"]
+      },
+      "Air Jordan 1": {
+        type: "shoe",
+        models: ["High OG Chicago", "High Dark Mocha", "Low Travis Scott", "Mid Wolf Grey"],
+        colorways: ["Standard", "Vintage Finish", "Alternative"],
+        sizes: ["US 7", "US 8", "US 9", "US 10", "US 11", "US 12"]
+      },
+      "Apple AirPods": {
+        type: "tech",
+        models: ["AirPods Gen 2", "AirPods Gen 3", "AirPods Pro", "AirPods Pro 2", "AirPods Max"],
+        colorways: ["Standard White", "Space Grey (Max)", "Silver (Max)", "Sky Blue (Max)"],
+        sizes: ["Standard One Size"]
+      },
+      "iPhone Cases": {
+        type: "accessory",
+        models: ["iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 15 Pro Max", "iPhone 14 Pro", "iPhone 13"],
+        colorways: ["Silicone Black", "Silicone Blue", "Leather Midnight", "Clear MagSafe"],
+        sizes: ["Exact Fit"]
+      },
+      "Essentials": {
+        type: "clothing",
+        models: ["Fear of God Hoodie", "FOG Sweatpants", "FOG T-Shirt"],
+        colorways: ["Black", "Oatmeal", "Light Grey", "Buttercream"],
+        sizes: ["S", "M", "L", "XL"]
+      },
+      "Arc'teryx": {
+        type: "clothing",
+        models: ["Alpha SV Jacket", "Beta LT Shell", "Atom LT Hoody"],
+        colorways: ["Black", "Ether Blue", "Oracle Yellow", "Tatsu Green"],
+        sizes: ["S", "M", "L", "XL"]
+      }
+    };
+
     const $ = (id) => document.getElementById(id);
 
-    function populateSelect(el, arr) {
-      el.innerHTML = "";
-      arr.forEach(v => {
-        let opt = document.createElement("option");
-        opt.value = v; opt.textContent = v;
-        el.appendChild(opt);
+    function setOptions(selectEl, options) {
+      selectEl.innerHTML = "";
+      options.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        selectEl.appendChild(opt);
       });
     }
 
-    function updateConfig() {
+    function refreshUI() {
       const cat = $("category").value;
       const data = CATALOG[cat];
-      populateSelect($("model"), data.models);
-      populateSelect($("size"), data.sizes);
-      populateSelect($("colorway"), data.colorways);
-      $("unitDisplay").textContent = `$${data.price}`;
-    }
+      const price = PRICING[data.type];
 
-    function updateCartUI() {
-      const container = $("cartList");
-      container.innerHTML = "";
-      let total = 0;
+      // Update Text
+      $("title").textContent = $("model").value;
+      $("price").textContent = `$${price}`;
 
-      if (cart.length === 0) {
-        container.innerHTML = `<p style="color:var(--muted); font-size:14px;">No items added yet...</p>`;
-      }
-
-      cart.forEach((item, index) => {
-        total += item.lineTotal;
-        const div = document.createElement("div");
-        div.className = "cart-item";
-        div.innerHTML = `
-          <div>
-            <div style="font-weight:bold">${item.category} x${item.qty}</div>
-            <div style="font-size:11px; color:var(--muted)">${item.model} | ${item.color}</div>
-          </div>
-          <div style="display:flex; align-items:center; gap:15px;">
-            <span style="color:var(--ok)">$${item.lineTotal}</span>
-            <button onclick="removeItem(${index})">✕</button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-
-      $("totalPrice").textContent = `$${total}`;
-      generateTelegramLink(total);
-    }
-
-    function removeItem(index) {
-      cart.splice(index, 1);
-      updateCartUI();
-    }
-
-    function generateTelegramLink(total) {
-      if (cart.length === 0) {
-        $("buyBtn").href = "#";
-        return;
-      }
-
-      let itemDetails = cart.map(i => 
-        `- ${i.qty}x ${i.category} (${i.model})\n  Specs: ${i.size}, ${i.color}\n  Sub: $${i.lineTotal}`
-      ).join("\n\n");
-
-      const msg = `NEW ORDER REQUEST\n` +
-                  `====================\n` +
-                  `${itemDetails}\n` +
-                  `====================\n` +
-                  `TOTAL POOL: $${total}\n` +
-                  `NOTES: ${$("extra").value || "None"}`;
+      // Update Link
+      const msg = `Order Request:\n` +
+                  `------------------\n` +
+                  `Item: ${cat}\n` +
+                  `Model: ${$("model").value}\n` +
+                  `Size: ${$("size").value}\n` +
+                  `Color: ${$("colorway").value}\n` +
+                  `Price: $${price}\n` +
+                  `Notes: ${$("extra").value || "None"}`;
 
       $("buyBtn").href = `https://t.me/${TELEGRAM_USERNAME}?text=${encodeURIComponent(msg)}`;
     }
 
-    // Events
-    $("category").addEventListener("change", updateConfig);
-    
-    $("addToCart").addEventListener("click", () => {
+    function handleCategoryChange() {
       const cat = $("category").value;
       const data = CATALOG[cat];
-      const qty = parseInt($("qty").value) || 1;
-
-      const newItem = {
-        category: cat,
-        model: $("model").value,
-        size: $("size").value,
-        color: $("colorway").value,
-        qty: qty,
-        lineTotal: data.price * qty
-      };
-
-      cart.push(newItem);
-      updateCartUI();
-      // Visual feedback: reset qty
-      $("qty").value = 1;
-    });
-
-    $("extra").addEventListener("input", () => {
-        const total = cart.reduce((sum, item) => sum + item.lineTotal, 0);
-        generateTelegramLink(total);
-    });
+      
+      setOptions($("model"), data.models);
+      setOptions($("size"), data.sizes);
+      setOptions($("colorway"), data.colorways);
+      
+      refreshUI();
+    }
 
     // Init
-    populateSelect($("category"), Object.keys(CATALOG));
-    updateConfig();
+    setOptions($("category"), Object.keys(CATALOG));
+    handleCategoryChange();
+
+    // Listeners
+    $("category").addEventListener("change", handleCategoryChange);
+    $("model").addEventListener("change", refreshUI);
+    $("size").addEventListener("change", refreshUI);
+    $("colorway").addEventListener("change", refreshUI);
+    $("extra").addEventListener("input", refreshUI);
+
+    $("copyBtn").addEventListener("click", () => {
+      navigator.clipboard.writeText($("buyBtn").href);
+      alert("Telegram order link copied!");
+    });
   </script>
 </body>
 </html>
